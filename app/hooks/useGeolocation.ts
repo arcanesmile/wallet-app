@@ -3,16 +3,22 @@ import { useState, useEffect } from 'react';
 interface Location {
   latitude: number;
   longitude: number;
-  error?: string;
 }
 
-export function useGeolocation() {
+interface GeolocationState {
+  location: Location | null;
+  loading: boolean;
+  error: string | null;
+}
+
+export function useGeolocation(): GeolocationState {
   const [location, setLocation] = useState<Location | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!navigator.geolocation) {
-      setLocation({ latitude: 0, longitude: 0, error: "Geolocation not supported" });
+      setError('Geolocation is not supported by your browser');
       setLoading(false);
       return;
     }
@@ -24,13 +30,14 @@ export function useGeolocation() {
           longitude: position.coords.longitude
         });
         setLoading(false);
+        setError(null);
       },
       (error) => {
-        setLocation({ latitude: 0, longitude: 0, error: error.message });
+        setError(error.message);
         setLoading(false);
       }
     );
   }, []);
 
-  return { location, loading };
+  return { location, loading, error };
 }
